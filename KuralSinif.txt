@@ -1,0 +1,304 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+
+namespace KuralTabanliVarlikIsmiTanimaProgrami
+{
+    class KuralSinif : TemelSinif
+    {
+        //SozlukSinif sozlukKural = new SozlukSinif();
+
+        public int KuralKontrolEt(string s, int index)
+        {
+            int isaretlenecekSozcukSayisi = 0;
+            int i = 0, j = 0;
+
+            //-------------------------------------------------------------------------------------------------(OK)
+            foreach (string sozluk in SozlukSinif.sozluk_Organizasyon_IsimdenSonra)
+            {
+                if (s.Contains(sozluk))
+                {
+                    for (j = 1; j <= 4 && index - j >= 0; j++)
+                    {
+                        //Aşağıda anahtar kelimeden önceki ismin büyük harfle başladığı ve virgülle ayrılmadığı kontrol edilir.
+                        if (BasHarfKontrolEt(metinDizi[index - j]) && !metinDizi[index - j].EndsWith(",") && !metinDizi[index - j].EndsWith("."))
+                        {
+                            isaretlenecekSozcukSayisi++;
+                            continue;
+                        }
+                        //Aşağıda anahtar kelimeden önceki ismin virgülle ayrıldığı kontrol edilir.(Kurum İsimleri 7.Kural)
+                        else if (metinDizi[index - j].EndsWith(","))
+                            break;
+                        //Kurum isimleri "ve" bağlacıyla bağlanıyorsa işaretlemeye dahil olur."Bilgi ve Teknoloji Kurumu" gibi vb.
+                        //(Kurum İsimleri 6.Kural)
+                        else if (metinDizi[index - j] == "ve" && BasHarfKontrolEt(metinDizi[index - (j + 1)]))
+                        {
+                            isaretlenecekSozcukSayisi++;
+                            continue;
+                        }
+                    }
+                    BirlestirIsaretle(index - isaretlenecekSozcukSayisi, isaretlenecekSozcukSayisi);
+                    return 0;
+                }
+            }
+            //---------------------------------------------------------------------(OK)
+            //(Kurum İsimleri 2.Kural)
+            foreach (string sozluk in SozlukSinif.sozluk_Organizasyon_IsminIcinde)
+            {
+                if (sozluk != null && s.Contains(sozluk) && BasHarfKontrolEt(s))
+                {
+                    Isaretle(index);
+                    return 0;
+                }
+            }
+            //---------------------------------------------------------------------(OK)
+            foreach (string sozluk in SozlukSinif.sozluk_Unvan_IsimdenOnce)
+            {
+                if (s.Contains(sozluk))
+                {
+                    for (j = 1; j <= 4 && index + j < metinDizi.Length; j++)
+                    {
+                        //dizideki bir sonraki string degeri kontrol ederken noktalama işaretlerini kontrol et.(Kişi İsmi 5.Kural)
+                        if (BasHarfKontrolEt(metinDizi[index + j]) && !metinDizi[index + j - 1].EndsWith(",") && !metinDizi[index + j - 1].EndsWith("."))
+                        {
+                            Isaretle(index + j);
+                            continue;
+                        }
+                        //İsimden sonra ismi virgülle bağlanan ismi işaretlemek için.(Kişi İsmi 8.Kural)
+                        else if (BasHarfKontrolEt(metinDizi[index + j]) && BasHarfKontrolEt(metinDizi[index + j - 1]) && metinDizi[index + j - 1].EndsWith(","))
+                        {
+                            Isaretle(index + j);
+                            continue;
+                        }
+                        //Aşağıdaki else if kontrolu ünvandan sonra gelen isim "ve" bağlacı ile başka bir isme bağlanıyorsa bütün
+                        //döngüden bağımsız bir şekilde isim olarak işaretlenir.(Kişi ismi 7.Kural)
+                        else if (metinDizi[index + j] == "ve" && BasHarfKontrolEt(metinDizi[index + j + 1]))
+                        {
+                            Isaretle(index + j + 1);
+                            continue;
+                        }
+                        else if (!BasHarfKontrolEt(metinDizi[index + j]) && metinDizi[index + j] != "ve")
+                            break;
+                        else if (BasHarfKontrolEt(metinDizi[index + j]))
+                        {
+                            Isaretle(index + j);
+                            continue;
+                        }
+                    }
+                    return 0;
+                }
+            }
+            //-------------------------------------------------------------------(OK)
+            foreach (string sozluk in SozlukSinif.sozluk_Unvan_IsimdenSonra)
+            {
+                if (s == sozluk)
+                    for (j = 1; j <= 4; j++)
+                    {
+                        if (index - j < 0)
+                            BirlestirIsaretle(index - isaretlenecekSozcukSayisi, isaretlenecekSozcukSayisi);
+
+                        if (BasHarfKontrolEt(metinDizi[index - j]) && !metinDiziIsaretliMi[index - j])
+                        {
+                            isaretlenecekSozcukSayisi++;
+                            continue;
+                        }
+                        else if (metinDiziIsaretliMi[index - j] && BasHarfKontrolEt(metinDiziOrijinal[index - j]))
+                        {
+                            IsaretKaldir(index - j);
+                            isaretlenecekSozcukSayisi++;
+                            continue;
+                        }
+                        BirlestirIsaretle(index - isaretlenecekSozcukSayisi, isaretlenecekSozcukSayisi);
+                        return 0;
+                    }
+                //Ve kendinden işaretlenmiş veya işaretlenecek isimden önceki string virgülle bitiyor ve 
+                //büyük harf ile başlıyorsa işaretli mi kontrol et ve işaretle.
+            }
+            //----------------------------------------------------------------------------------------------
+            /*Aşağıdaki kod satırları yer isimleri önde ve sonda olan anahtar kelimelerin kontrollerini içeren kodlar
+             * 3,4,5,7 ve 7.Kurallar eklenecek.
+            //-------------------------------------------------------------------
+            //(Yer İsimleri 1.Kural)
+            foreach (string sozluk in sozlukKural.sozluk_Yer_IsimdenOnce)
+            {
+                if (s == sozluk)
+                    for (int j = 0; j < 4; j++)
+                    {
+                        if (BasHarfKontrolEt(metinDizi[index + j]) && !metinDiziİsaretliMi[index])
+                        {
+                            isaretlenecekSozcukSayisi++;
+                            continue;
+                        }
+                        else if (metinDiziİsaretliMi[index])
+                        {
+                            IsaretKaldir(index);
+                            isaretlenecekSozcukSayisi++;
+                        }
+                        
+                    }
+                if (BasHarfKontrolEt(s))
+                    BirlestirIsaretle(index, isaretlenecekSozcukSayisi);
+                else if (!BasHarfKontrolEt(s))
+                    BirlestirIsaretle(index + 1, isaretlenecekSozcukSayisi);
+
+                return 0;
+            }
+            //-------------------------------------------------------------------
+            //(Yer İsimleri 2.Kural)
+            foreach (string sozluk in sozlukKural.sozluk_Yer_IsimdenSonra)
+            {
+                if (s == sozluk)
+                    for (int j = 0; j < 4; j++)
+                    {
+                        if (BasHarfKontrolEt(metinDizi[index - j]) && !metinDiziİsaretliMi[index])
+                        {
+                            isaretlenecekSozcukSayisi++;
+                            continue;
+                        }
+                        else if (BasHarfKontrolEt(metinDizi[index - j])&&metinDiziİsaretliMi[index])
+                        {
+                            IsaretKaldir(index);
+                            isaretlenecekSozcukSayisi++;
+                        }
+                        BirlestirIsaretle(index - isaretlenecekSozcukSayisi, isaretlenecekSozcukSayisi);
+                    }
+                return 0;
+            }
+             * Yer işaretleri 3,4,5,6,7 nolu kurallar eklenecek olan alan sonu.
+             */
+            //----------------------------------------------------------------------------------------------
+            return 0;
+        }
+
+        //public int AnahtarBagimsizKurallar(string s, int index)
+        //{
+        //    //Hepsi büyük harf olan sözcükler kısaltma kabul edilir ve isim olarak etiketlenir. " ' " Eğer büyük harfli ise tırnak işaretinin kontrolünüde yapar.(Kurum İsimleri 3.Kural)
+        //    //OK
+        //    {
+        //        if (s == s.ToUpper() && !s.Contains("'"))
+        //        {
+        //            Isaretle(index);
+        //            return 0;
+        //        }
+        //        else if (s.Contains("'") && s.Substring(0, s.IndexOf("'")) == s.Substring(0, s.IndexOf("'")).ToUpper())
+        //        {
+        //            Isaretle(index, s.IndexOf("'"));
+        //            return 0;
+        //        }
+        //    }
+        //    return 0;
+        //}
+        //---------------------------------------------------------------------------------------------------
+        public bool BasHarfKontrolEt(string s)
+        {
+            string temiz_s = Regex.Replace(s, @"[^\w\s]", "");
+            if (Char.IsUpper(temiz_s[0]))
+                return true;
+            else return false;
+        }
+
+        public void BirlestirIsaretle(int index, int isaretlenecekSozcukSayisi)
+        {
+            metinDizi[index] = ilkIsaret + metinDizi[index].ToString();
+            metinDizi[index + (isaretlenecekSozcukSayisi)] = metinDizi[index + (isaretlenecekSozcukSayisi)].ToString() + sonIsaret;
+
+            for (int i = 0; i <= isaretlenecekSozcukSayisi; i++)
+                metinDiziIsaretliMi[index + i] = true;
+        }
+
+        //public void BirlestirIsaretle(int index, int isaretlenecekSozcukSayisi, int indexOf)
+        //{
+        //    metinDizi[index] = ilkIsaret + metinDizi[index].ToString();
+        //    metinDizi[index + (isaretlenecekSozcukSayisi)] = metinDizi[index + (isaretlenecekSozcukSayisi)].Substring(0, indexOf) + sonIsaret + metinDizi[index + (isaretlenecekSozcukSayisi)].Substring(indexOf, metinDizi[index + (isaretlenecekSozcukSayisi)].Length - indexOf);
+
+        //    for (int i = 0; i <= isaretlenecekSozcukSayisi; i++)
+        //        metinDiziIsaretliMi[index + i] = true;
+        //}
+
+        public void Isaretle(int index)
+        {
+
+            if (!(metinDizi[index].Contains('(') || metinDizi[index].Contains('-') || metinDizi[index].Contains('\'') || metinDizi[index].Contains(')')))
+            {
+                metinDizi[index] = ilkIsaret + metinDizi[index] + sonIsaret;
+            }
+            else
+            {
+                string[] metinDiziSplit = new string[metinDizi[index].Length];
+                string isaretlenecekIsim = "";
+                bool tire = false;
+                bool tirnak = false;
+                int i = 0;
+                //
+                foreach (char chr in metinDizi[index])
+                {
+                    switch (chr)
+                    {
+                        case '(':
+                            metinDiziSplit[i++] = "(";
+                            break;
+                        case '\'':
+                            metinDiziSplit[++i] = "'";
+                            i++;
+                            tirnak = true;
+                            break;
+                        case ')':
+                            metinDiziSplit[++i] = ")";
+                            i++;
+                            break;
+                        case '-':
+                            metinDiziSplit[++i] = "-";
+                            i++;
+                            tire = true;
+                            break;
+                        default:
+                            metinDiziSplit[i] += chr;
+                            break;
+                    }
+                }
+                //
+                isaretlenecekIsim = Regex.Replace(metinDizi[index], @"[^\w\s]", "");
+                if (tirnak)
+                {
+                    string[] isaretlenecekIsimDizi = metinDizi[index].Split('\'');
+                    isaretlenecekIsim = Regex.Replace(isaretlenecekIsimDizi[0], @"[^\w\s]", "");
+                }
+                else if (tire)
+                {
+                    string[] isaretlenecekIsimDizi = metinDizi[index].Split('-');
+                    isaretlenecekIsim = Regex.Replace(isaretlenecekIsimDizi[0], @"[^\w\s]", "");
+                }
+                //
+                metinDizi[index] = "";
+                for (int k = 0; k < metinDiziSplit.Length; k++)
+                {
+                    if (metinDiziSplit[k] != null && isaretlenecekIsim.Contains(metinDiziSplit[k]))
+                        metinDizi[index] += ilkIsaret + metinDiziSplit[k] + sonIsaret;
+                    else if (metinDiziSplit[k] != null && metinDiziSplit[k].Contains("-"))
+                        metinDizi[index] += "-" + ilkIsaret + metinDiziSplit[++k] + sonIsaret;
+                    else
+                        metinDizi[index] += metinDiziSplit[k];
+                }
+            }
+            metinDiziIsaretliMi[index] = true;
+        }
+
+        //public void Isaretle(int index, int indexOf)
+        //{
+        //    metinDizi[index] = ilkIsaret + metinDizi[index].Substring(0, indexOf) + sonIsaret + metinDizi[index].Substring(indexOf, metinDizi[index].Length - indexOf);
+        //    metinDiziIsaretliMi[index] = true;
+        //}
+
+        public void IsaretKaldir(int index)
+        {
+            if (metinDiziIsaretliMi[index] || metinDizi[index].Contains(ilkIsaret) || metinDizi[index].Contains(sonIsaret))
+            {
+                metinDizi[index] = metinDiziOrijinal[index];
+                metinDiziIsaretliMi[index] = false;
+            }
+        }
+    }
+}
