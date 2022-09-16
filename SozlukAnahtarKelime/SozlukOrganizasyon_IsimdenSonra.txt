@@ -1,69 +1,69 @@
-﻿A.þ.
+A.Ş.
 Þti
-Ltd Þti
+Ltd Şti
 Kurulu
 Enstitü
 Rasathanesi
-Bakanlýðý
+Bakanlığı
 Parti
-Baþkanlýðý
+Başkanlığı
 Üniversite
-Vakfý
-Havayollarý
-Büyükelçiliði
-Baþkonsolosluðu
+Vakfı
+Havayolları
+Büyükelçiliği
+Başkonsolosluğu
 Belediye
-Valiliði
+Valiliği
 Kurumu
 Mahkeme
-Komutanlýðý
+Komutanı
 Lisesi
-Müdürlüðü
+Müdürlüğü
 Fakültesi
-Ýdaresi
-Derneði
-Savcýlýðý
+İdaresi
+Derneği
+Savcılığı
 Komisyonu
 Komitesi
-Müsteþarlýðý
+Müsteşarlığı
 Barosu
 Sanayi AÞ
 Yüksek Okul
-Bankasý
+Bankası
 Holding
 Federasyonu
-Takým
+Takımı
 Kulübü
 Adliye
-Konservatuarý
+Konservatuarı
 Örgütü
 Cemevi
-Birliði
+Birliği
 Dergisi
-Þirketi
+Şirketi
 Olimpiyat
 Gazetesi
 Meclis
 Konsolsiyum
 Sendika
 Oda
-Sekreterliði
-Þampiyona
-Hava Yollarý
+Sekreterliği
+Şampiyona
+Hava Yolları
 Akademi	Bölümü
 Lig
 TV
 Center
 Fonu
-Fabrikasý
+Fabrikası
 Konseyi
-Þubesi
+Şubesi
 Genel Müdürü
 Yönetim Kurulu
-Genel Baþkaný
+Genel Başkanı
 Muhabiri
 Milletvekili
 Üyesi
 Televizyonu
-Ýlkokul
+İlkokul
 Ortaokul
